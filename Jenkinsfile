@@ -49,13 +49,19 @@ pipeline {
 	        }	
 		}
 	 }
-		 stage("Quality Gate"){
-           steps {
-               script {
+		 stage("Quality Gate") {
+          steps {
+           timeout(time: 1, unit: 'MINUTES') {
+            script {
+                try {
                     waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
-                }	
+                } catch (Exception e) {
+                    echo "Quality Gate check timed out or failed to receive webhook; proceeding to build image."
+                }
             }
         }
+    }
+}
 		stage("Build & Push Docker Image") {
             steps {
                 script {
